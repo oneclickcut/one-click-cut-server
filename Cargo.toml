@@ -1,0 +1,167 @@
+[package]
+name = "one-click-cut-server"
+version = "0.1.0"
+edition = "2024"
+# 加了 src/bin/reset_admin_password.rs 后 bin target 变多，`cargo run` 不加
+# --bin 就无法猜默认目标，显式指回主服务。
+default-run = "one-click-cut-server"
+
+# 代码全挂在 lib 上，bin 只做启动。集成测试 use 不到 bin crate，
+# 不拆就写不了 test/ 下的测试。
+[lib]
+name = "one_click_cut_server"
+path = "src/lib.rs"
+
+[[bin]]
+name = "one-click-cut-server"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.104"
+argon2 = "0.6.0"
+axum = "0.8.9"
+bincode = { version = "2", features = ["serde"] }
+blake3 = "1.8.7"
+chrono = "0.4"
+hex = "0.4.3"
+jsonwebtoken = { version = "11.1.0", default-features = false, features = ["rust_crypto"] }
+rand = "0.10.2"
+rocksdb = "0.25.0"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+sha2 = "0.11.0"
+tar = "0.4.46"
+thiserror = "2.0.20"
+tokio = { version = "1.53.1", features = [
+    "rt-multi-thread",
+    "macros",
+    "signal",
+    "net",
+] }
+toml = "1.1.6"
+tower = "0.5.3"
+tower-http = { version = "0.7.1", features = ["trace", "request-id", "util", "cors"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json"] }
+ulid = "3.0.0"
+utoipa = { version = "5.5.0", features = ["axum_extras"] }
+utoipa-axum = "0.2.0"
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
+
+[dev-dependencies]
+reqwest = { version = "0.13.5", features = ["json"] }
+tempfile = "3.27.0"
+
+# CLAUDE.md 要求测试放 test/ 并按 test-xxx 分组，而 cargo 只会自动发现 tests/，
+# 所以每个测试文件都要在这里显式登记。新增测试文件记得同步加一段。
+[[test]]
+name = "storage_smoke"
+path = "test/test-storage/smoke.rs"
+
+[[test]]
+name = "storage_keys"
+path = "test/test-storage/keys.rs"
+
+[[test]]
+name = "storage_blob"
+path = "test/test-storage/blob.rs"
+
+[[test]]
+name = "storage_dataset"
+path = "test/test-storage/dataset.rs"
+
+[[test]]
+name = "storage_store"
+path = "test/test-storage/store.rs"
+
+[[test]]
+name = "static_range"
+path = "test/test-static/range.rs"
+
+[[test]]
+name = "static_headers"
+path = "test/test-static/headers.rs"
+
+[[test]]
+name = "bench_small"
+path = "test/test-bench/many_small_files.rs"
+
+[[test]]
+name = "gc_cycle"
+path = "test/test-gc/gc_cycle.rs"
+
+[[test]]
+name = "gc_orphan"
+path = "test/test-gc/orphan_scan.rs"
+
+[[test]]
+name = "api_auth"
+path = "test/test-api/auth.rs"
+
+[[test]]
+name = "api_tree"
+path = "test/test-api/tree.rs"
+
+[[test]]
+name = "api_files"
+path = "test/test-api/files.rs"
+
+[[test]]
+name = "api_dirs"
+path = "test/test-api/dirs.rs"
+
+[[test]]
+name = "api_agent"
+path = "test/test-api/agent.rs"
+
+[[test]]
+name = "api_uploads"
+path = "test/test-api/uploads.rs"
+
+[[test]]
+name = "api_admin"
+path = "test/test-api/admin.rs"
+
+[[test]]
+name = "api_health"
+path = "test/test-api/health.rs"
+
+[[test]]
+name = "api_projects"
+path = "test/test-api/projects.rs"
+
+[[test]]
+name = "api_gallery"
+path = "test/test-api/gallery.rs"
+
+[[test]]
+name = "api_tasks"
+path = "test/test-api/tasks.rs"
+
+[[test]]
+name = "api_plans"
+path = "test/test-api/plans.rs"
+
+[[test]]
+name = "storage_task_queue"
+path = "test/test-storage/task_queue.rs"
+
+[[test]]
+name = "reset_admin_password"
+path = "test/test-cli/reset_admin_password.rs"
+
+[[test]]
+name = "api_auto_gallery"
+path = "test/test-api/auto_gallery.rs"
+
+[[test]]
+name = "server_config"
+path = "test/test-cli/server_config.rs"
+
+[[test]]
+name = "resource_jobs"
+path = "test/test-resource-regeneration/jobs.rs"
+
+[[test]]
+name = "manual_mp4"
+path = "test/test-manual-mp4/jobs.rs"

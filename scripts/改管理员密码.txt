@@ -1,0 +1,14 @@
+# 在项目根目录操作。先停止使用该数据库的服务进程，再执行重置。
+# 数据库增加列族后，旧二进制会报 Column families not opened。
+# 每次发布同步构建、更新服务和工具：
+bash scripts/build-release.sh
+
+# 使用与服务相同的配置文件、工作目录和 OCC_DATA_DIR。
+# 将下面的“新密码”替换为实际密码（至少 8 字节）：
+./reset_admin_password admin '12345678' ./config.toml
+
+# 开发环境也可直接编译运行最新源码：
+cargo run --bin reset_admin_password -- admin '12345678' ./config.toml
+
+# 成功后重新启动服务，再到网站登录。不要删除 data/rocksdb。
+# 本工具只改密码，不解除账户禁用，也不撤销已有令牌。

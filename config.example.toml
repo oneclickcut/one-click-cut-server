@@ -1,0 +1,72 @@
+# 配置示例。拷成 config.toml 后按需改；config.toml 不进版本库。
+#
+# 三层叠加：默认值 → 本文件 → 环境变量（OCC_ 前缀）。
+# 环境变量优先级最高，生产环境用它注入密钥，不要把密钥写进文件。
+
+# 监听地址。生产只听回环，由 cloudflared 转发到公网域名。
+listen = "127.0.0.1:3823"
+
+# 数据根目录。下面会有 rocksdb/（元数据 + 全部文件内容）与 backup/（checkpoint 快照）。
+# 上线时指向 4TB SSD 的挂载点；本机开发改成项目内的 "./data"，
+# 因为默认的 /data 要 root 才建得出来（Permission denied）。
+data_dir = "/data"
+
+[log]
+# tracing EnvFilter 表达式。RUST_LOG 环境变量优先级更高。
+filter = "info,one_click_cut_server=debug"
+# true 输出 JSON 结构化日志，适合日志采集；本机调试用 false 更好读。
+json = false
+
+[docs]
+# Swagger UI 与 /api-docs/openapi.json 的开关。
+# 生产环境设为 false：调试入口暴露在公网会外泄接口结构。
+enabled = true
+
+[jwt]
+# HS256 签名密钥，至少 32 字节。生产必须用 OCC_JWT_SECRET 环境变量注入。
+# 留空时启动会直接报错，避免拿默认密钥上线。
+# 本机生成一串：openssl rand -base64 48
+secret = ""
+
+[admin]
+# 管理账户用户名。首次启动自动创建，并在日志里 WARN 一次性初始密码。
+# 重启不重置密码。
+username = "admin"
+
+[upload]
+# 单次 PUT 请求体上限（字节），超过返回 413，需改走分块上传。默认 32MB。
+max_single_bytes = 33554432
+# 单个分片 / tar 批量请求体上限（字节）。默认 50MB，给 Cloudflare 免费版
+# 100MB 单请求体上限留余量。
+max_part_bytes = 52428800
+
+[task_queue]
+# 可领取所有用户任务的登录用户名；管理员也必须列入名单。
+# 例如 ["worker1", "worker2"]。空名单禁止所有领取，修改后重启生效。
+# 环境变量 OCC_TASK_QUEUE_READER_USERNAMES 使用 JSON 数组，例如 '["worker1"]'。
+reader_usernames = []
+# 单次提交 JSON 请求体上限：64 KiB。
+# 可通过 OCC_TASK_QUEUE_MAX_PAYLOAD_BYTES 覆盖。
+max_payload_bytes = 65536
+
+# 硬盘标称容量：十进制 GB，1 GB = 1,000,000,000 字节。
+[plans.basic]
+storage_bytes = 5000000000
+monthly_push_limit = 5
+
+[plans.pro]
+storage_bytes = 50000000000
+monthly_push_limit = 50
+
+[plans.max]
+storage_bytes = 200000000000
+monthly_push_limit = 300
+
+[registration]
+# 北京时间每日 00:00 重置；0 表示关闭公开注册。
+daily_limit = 100
+
+# 独立的跨用户生成完成发布权限；与 task_queue.reader_usernames 分别授权。
+# 环境变量 OCC_GALLERY_PUBLISHER_USERNAMES='["worker1"]'；修改后重启。
+[gallery]
+publisher_usernames = []
